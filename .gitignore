@@ -1,0 +1,7 @@
+**/__pycache__/
+**/.vscode/
+**/.hypothesis/
+.DS_Store
+.ipynb_checkpoints/
+**/build/
+*.so
