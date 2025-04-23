@@ -1,0 +1,4 @@
+- interpreter, compile to bytecode, compile to machine code, translator
+- scanner: string to tokens (lexeme). context free grammer
+- parser: recursive descent parsing!
+  - solve precendence and ordering
