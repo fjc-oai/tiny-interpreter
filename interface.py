@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from expr import BinaryExpr, UnaryExpr, LiteralExpr
+    from expr import BinaryExpr, UnaryExpr, LiteralExpr, GroupingExpr
 
 import logging
 import config_logging
@@ -35,4 +35,7 @@ class Visitor:
         pass
 
     def visit_literal_expr(self, expr: "LiteralExpr"):
+        pass
+
+    def visit_grouping_expr(self, expr: "GroupingExpr"):
         pass

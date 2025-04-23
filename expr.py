@@ -5,13 +5,11 @@ from interface import Expr, Visitor
 
 
 @dataclass
-class BinaryExpr(Expr):
-    left: Expr
-    right: Expr
-    op: Token
+class LiteralExpr(Expr):
+    value: Token
 
     def accept(self, visitor: Visitor):
-        return visitor.visit_binary_expr(self)
+        return visitor.visit_literal_expr(self)
 
 
 @dataclass
@@ -24,11 +22,13 @@ class UnaryExpr(Expr):
 
 
 @dataclass
-class LiteralExpr(Expr):
-    value: Token
+class BinaryExpr(Expr):
+    left: Expr
+    right: Expr
+    op: Token
 
     def accept(self, visitor: Visitor):
-        return visitor.visit_literal_expr(self)
+        return visitor.visit_binary_expr(self)
 
 
 @dataclass

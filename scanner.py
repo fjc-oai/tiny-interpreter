@@ -68,6 +68,7 @@ class Scanner:
             while not self._is_at_end() and is_digit(self._peek()):
                 self._advance()
         value = eval(self._source[self._start : self._cur])
+        value = float(value) # only float is supported for now
         return self._gen_token(TokenType.NUMBER, value)
 
     def _identifier(self) -> Token:
