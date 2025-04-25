@@ -154,8 +154,7 @@ class Parser:
                 and self._peek(1).token_type == TokenType.EQUAL
             ):
                 return self._assign_stmt()
-            else:
-                return self._expression()
+        assert False, f"Unexpected token: {self._peek()}"
 
     def _print_stmt(self) -> Expr:
         self._advance(TokenType.PRINT)
@@ -194,7 +193,7 @@ class Parser:
         return Block(exprs)
 
 
-def _test_parser(source: str) -> None:
+def _test_expression(source: str) -> None:
     from scanner import Scanner
 
     tokens = Scanner(source).scan()
@@ -202,7 +201,7 @@ def _test_parser(source: str) -> None:
         logger.debug(f"{idx}: {token}")
 
     parser = Parser(tokens)
-    expr = parser.parse()
+    expr = parser._expression()
     print(f"{expr}")
 
 
@@ -210,28 +209,37 @@ def test_multiple_expressions():
     source = "a + 2 * 3"
     print("-" * 80)
     print(f"Testing multiple expressions: {source}")
-    _test_parser(source)
+    _test_expression(source)
 
 
 def test_unary_operator():
     source = "---a"
     print("-" * 80)
     print(f"Testing unary operator: {source}")
-    _test_parser(source)
+    _test_expression(source)
 
 
 def test_grouping():
     source = "(a + 2) * 3"
     print("-" * 80)
     print(f"Testing grouping: {source}")
-    _test_parser(source)
+    _test_expression(source)
 
 
 def test_precedence():
     source = "a * 2 * 3 - b * 2"
     print("-" * 80)
     print(f"Testing precedence: {source}")
-    _test_parser(source)
+    _test_expression(source)
+
+
+def _test_parser(source: str) -> None:
+    from scanner import Scanner
+
+    tokens = Scanner(source).scan()
+    parser = Parser(tokens)
+    expr = parser.parse()
+    print(f"{expr}")
 
 
 def test_program():
@@ -249,11 +257,14 @@ def test_program():
     _test_parser(source)
 
 
-def test_parser():
+def test_expression():
     test_multiple_expressions()
     test_unary_operator()
     test_grouping()
     test_precedence()
+
+
+def test_parser():
     test_program()
 
 
