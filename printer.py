@@ -11,6 +11,7 @@ from expr import (
     Program,
     UnaryExpr,
     LiteralExpr,
+    WhileStmt,
 )
 
 
@@ -61,6 +62,13 @@ class ExprPrinter(Visitor):
         if stmt.else_branch is not None:
             str += "else\n"
             str += f"\t{self.print(stmt.else_branch)}\n"
+        return str
+
+    def visit_while_stmt(self, stmt: "WhileStmt"):
+        str = "while\n"
+        str += f"\t({self.print(stmt.condition)})\n"
+        str += "do\n"
+        str += f"\t{self.print(stmt.body)}\n"
         return str
 
 

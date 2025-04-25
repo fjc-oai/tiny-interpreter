@@ -99,3 +99,12 @@ class IfStmt(Expr):
 
     def accept(self, visitor: Visitor):
         return visitor.visit_if_stmt(self)
+
+
+@dataclass
+class WhileStmt(Expr):
+    condition: Expr
+    body: Expr
+
+    def accept(self, visitor: Visitor):
+        return visitor.visit_while_stmt(self)

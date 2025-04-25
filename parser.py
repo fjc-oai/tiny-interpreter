@@ -15,6 +15,7 @@ from expr import (
     PrintStmt,
     Program,
     UnaryExpr,
+    WhileStmt,
 )
 
 
@@ -171,6 +172,8 @@ class Parser:
             return self._block_stmt()
         elif self._peek().token_type == TokenType.IF:
             return self._if_stmt()
+        elif self._peek().token_type == TokenType.WHILE:
+            return self._while_stmt()
         else:
             if (
                 self._peek().token_type == TokenType.IDENTIFIER
@@ -226,6 +229,14 @@ class Parser:
         return IfStmt(
             condition=condition, then_branch=then_branch, else_branch=else_branch
         )
+
+    def _while_stmt(self) -> Expr:
+        self._advance(TokenType.WHILE)
+        self._advance(TokenType.LEFT_PAREN)
+        condition = self._expression()
+        self._advance(TokenType.RIGHT_PAREN)
+        body = self._statement()
+        return WhileStmt(condition=condition, body=body)
 
 
 def _test_expression(source: str) -> None:

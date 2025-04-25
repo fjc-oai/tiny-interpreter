@@ -202,6 +202,10 @@ class Interpreter(Visitor):
         elif stmt.else_branch is not None:
             self.interpret(stmt.else_branch)
 
+    def visit_while_stmt(self, stmt: "WhileStmt"):
+        while self.interpret(stmt.condition):
+            self.interpret(stmt.body)
+
 
 def test_interpreter():
     from scanner import Scanner
@@ -238,6 +242,13 @@ def test_interpreter():
             print "a is greater than b and less than b";
         }
     """,
+    """
+    var itr = 0;
+    while (itr < 10) {
+        print itr;
+        itr = itr + 1;
+    }
+    """
     ]
 
     for source in sources:
