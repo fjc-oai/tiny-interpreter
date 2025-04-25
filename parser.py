@@ -1,5 +1,20 @@
 from scanner import Token, TokenType
-from expr import Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr
+import logging
+
+logger = logging.getLogger(__name__)
+
+from expr import (
+    AssignStmt,
+    Block,
+    DeclStmt,
+    Expr,
+    BinaryExpr,
+    GroupingExpr,
+    LiteralExpr,
+    PrintStmt,
+    Program,
+    UnaryExpr,
+)
 
 
 class Parser:
@@ -8,19 +23,24 @@ class Parser:
         self._tokens = tokens
 
     def parse(self) -> Expr:
-        return self._expression()
+        return self._program()
 
-    def _peek(self) -> Token:
+    def _peek(self, offset: int = 0) -> Token:
         assert not self._is_at_end()
-        return self._tokens[self._cur]
+        assert self._cur + offset < len(self._tokens)
+        return self._tokens[self._cur + offset]
 
     def _is_at_end(self) -> bool:
         return self._cur >= len(self._tokens)
 
-    def _advance(self) -> Token:
+    def _advance(self, expected_token_type: TokenType | None = None) -> Token:
         assert not self._is_at_end()
         token = self._tokens[self._cur]
         self._cur += 1
+        if expected_token_type is not None:
+            assert (
+                token.token_type == expected_token_type
+            ), f"Expected {expected_token_type} but got {token.token_type}"
         return token
 
     def _expression(self) -> Expr:
@@ -107,12 +127,68 @@ class Parser:
             self._advance()
             expr = self._expression()
             assert (
-                not self._is_at_end() and self._advance().token_type == TokenType.RIGHT_PAREN
+                not self._is_at_end()
+                and self._advance().token_type == TokenType.RIGHT_PAREN
             ), f"Expected ')' after expression"
 
             return GroupingExpr(expr)
 
         raise ValueError(f"Unexpected token {self._peek()}")
+
+    def _program(self) -> Expr:
+        exprs = []
+        while not self._is_at_end() and self._peek().token_type != TokenType.EOF:
+            exprs.append(self._statement())
+        return Program(exprs)
+
+    def _statement(self) -> Expr:
+        if self._peek().token_type == TokenType.PRINT:
+            return self._print_stmt()
+        elif self._peek().token_type == TokenType.VAR:
+            return self._decl_stmt()
+        elif self._peek().token_type == TokenType.LEFT_BRACE:
+            return self._block_stmt()
+        else:
+            if (
+                self._peek().token_type == TokenType.IDENTIFIER
+                and self._peek(1).token_type == TokenType.EQUAL
+            ):
+                return self._assign_stmt()
+            else:
+                return self._expression()
+
+    def _print_stmt(self) -> Expr:
+        self._advance(TokenType.PRINT)
+        expr = self._expression()
+        self._advance(TokenType.SEMICOLON)
+        return PrintStmt(expr)
+
+    def _decl_stmt(self) -> Expr:
+        self._advance(TokenType.VAR)
+        name = self._advance(TokenType.IDENTIFIER)
+        self._advance(TokenType.EQUAL)
+        expr = self._expression()
+        self._advance(TokenType.SEMICOLON)
+        return DeclStmt(name=name, expr=expr)
+
+    def _assign_stmt(self) -> Expr:
+        name = self._advance(
+            TokenType.IDENTIFIER
+        )  # TODO: support more complex access, e.g. a.b.c
+        self._advance(TokenType.EQUAL)
+        expr = self._expression()
+        self._advance(TokenType.SEMICOLON)
+        return AssignStmt(name=name, expr=expr)
+
+    def _block_stmt(self) -> Expr:
+        self._advance(TokenType.LEFT_BRACE)
+        exprs = []
+        while (
+            not self._is_at_end() and self._peek().token_type != TokenType.RIGHT_BRACE
+        ):
+            exprs.append(self._statement())
+        self._advance(TokenType.RIGHT_BRACE)
+        return Block(exprs)
 
 
 def _test_parser(source: str) -> None:
@@ -120,7 +196,7 @@ def _test_parser(source: str) -> None:
 
     tokens = Scanner(source).scan()
     for idx, token in enumerate(tokens):
-        print(f"{idx}: {token}")
+        logger.debug(f"{idx}: {token}")
 
     parser = Parser(tokens)
     expr = parser.parse()
@@ -154,11 +230,28 @@ def test_precedence():
     print(f"Testing precedence: {source}")
     _test_parser(source)
 
+
+def test_program():
+    source = """
+    var a = 1;
+    var b = 2;
+    print a + b;
+    {
+        var c = 3;
+        print c;
+    }
+    """
+    print("-" * 80)
+    print(f"Testing program: {source}")
+    _test_parser(source)
+
+
 def test_parser():
     test_multiple_expressions()
     test_unary_operator()
     test_grouping()
     test_precedence()
+    test_program()
 
 
 if __name__ == "__main__":

@@ -90,7 +90,7 @@ class Scanner:
             case "{":
                 return self._gen_token(TokenType.LEFT_BRACE)
             case "}":
-                return self._gen_token(TokenType.RIGHT_PAREN)
+                return self._gen_token(TokenType.RIGHT_BRACE)
             case ",":
                 return self._gen_token(TokenType.COMMA)
             case ".":

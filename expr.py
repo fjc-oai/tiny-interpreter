@@ -37,3 +37,45 @@ class GroupingExpr(Expr):
 
     def accept(self, visitor: Visitor):
         return visitor.visit_grouping_expr(self)
+
+
+@dataclass
+class PrintStmt(Expr):
+    expr: Expr
+
+    def accept(self, visitor: Visitor):
+        return visitor.visit_print_stmt(self)
+
+
+@dataclass
+class DeclStmt(Expr):
+    name: Token
+    expr: Expr
+
+    def accept(self, visitor: Visitor):
+        return visitor.visit_decl_stmt(self)
+
+
+@dataclass
+class AssignStmt(Expr):
+    name: Token
+    expr: Expr
+
+    def accept(self, visitor: Visitor):
+        return visitor.visit_assign_stmt(self)
+
+
+@dataclass
+class Block(Expr):
+    exprs: list[Expr]
+
+    def accept(self, visitor: Visitor):
+        return visitor.visit_block(self)
+
+
+@dataclass
+class Program(Expr):
+    exprs: list[Expr]
+
+    def accept(self, visitor: Visitor):
+        return visitor.visit_program(self)

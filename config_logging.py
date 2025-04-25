@@ -1,6 +1,6 @@
 import logging
 
-_USE_DEBUG = False
+_USE_DEBUG = True
 
 def config_logging():
     root_logger = logging.getLogger()

@@ -4,7 +4,17 @@ from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from expr import BinaryExpr, UnaryExpr, LiteralExpr, GroupingExpr
+    from expr import (
+        BinaryExpr,
+        UnaryExpr,
+        LiteralExpr,
+        GroupingExpr,
+        DeclStmt,
+        PrintStmt,
+        AssignStmt,
+        Block,
+        Program,
+    )
 
 import logging
 import config_logging
@@ -38,4 +48,19 @@ class Visitor:
         pass
 
     def visit_grouping_expr(self, expr: "GroupingExpr"):
+        pass
+
+    def visit_print_stmt(self, stmt: "PrintStmt"):
+        pass
+
+    def visit_decl_stmt(self, stmt: "DeclStmt"):
+        pass
+
+    def visit_assign_stmt(self, stmt: "AssignStmt"):
+        pass
+
+    def visit_block(self, block: "Block"):
+        pass
+
+    def visit_program(self, program: "Program"):
         pass

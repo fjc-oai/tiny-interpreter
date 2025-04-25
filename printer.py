@@ -1,6 +1,16 @@
 from interface import Visitor, Expr
 from scanner import Token, TokenType
-from expr import BinaryExpr, GroupingExpr, UnaryExpr, LiteralExpr
+from expr import (
+    AssignStmt,
+    BinaryExpr,
+    Block,
+    DeclStmt,
+    GroupingExpr,
+    PrintStmt,
+    Program,
+    UnaryExpr,
+    LiteralExpr,
+)
 
 
 class ExprPrinter(Visitor):
@@ -23,6 +33,24 @@ class ExprPrinter(Visitor):
 
     def visit_grouping_expr(self, expr: "GroupingExpr"):
         return f"({self.print(expr.expr)})"
+
+    def visit_print_stmt(self, stmt: "PrintStmt"):
+        return f"print {self.print(stmt.expr)}"
+
+    def visit_decl_stmt(self, stmt: "DeclStmt"):
+        return f"var {stmt.name.lexeme} = {self.print(stmt.expr)}"
+
+    def visit_assign_stmt(self, stmt: "AssignStmt"):
+        return f"{stmt.name.lexeme} = {self.print(stmt.expr)}"
+
+    def visit_block(self, block: "Block"):
+        str = "\n".join([self.print(stmt) for stmt in block.exprs])
+        str = "{\n" + str + "\n}"
+        return str
+
+    def visit_program(self, program: "Program"):
+        str = "\n".join([self.print(stmt) for stmt in program.exprs])
+        return str
 
 
 def test_ast_printer():
