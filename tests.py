@@ -19,9 +19,9 @@ def test_all_runnable():
     print(color_print("Test parser...", "green"))
     test_parser()
 
-    # print("-" * 80)
-    # print("Test interpreter...")
-    # test_interpreter()
+    print("-" * 80)
+    print(color_print("Test interpreter...", "green"))
+    test_interpreter()
 
 
 def main():

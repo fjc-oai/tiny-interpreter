@@ -1,13 +1,28 @@
 from typing import Any
+from env import Environment
 from interface import Expr, Visitor
-from expr import BinaryExpr, UnaryExpr, LiteralExpr, GroupingExpr
+from expr import (
+    AssignStmt,
+    BinaryExpr,
+    Block,
+    DeclStmt,
+    PrintStmt,
+    Program,
+    UnaryExpr,
+    LiteralExpr,
+    GroupingExpr,
+)
 from tok import TokenType
 import logging
+
+from utils import color_print
 
 logger = logging.getLogger(__name__)
 
 
 class Interpreter(Visitor):
+    def __init__(self):
+        self._env = Environment()
 
     def interpret(self, expr: Expr) -> Any:
         return expr.accept(self)
@@ -25,7 +40,10 @@ class Interpreter(Visitor):
         assert (
             token.token_type in accepted_types
         ), f"LiteralExpr: {token.token_type} is not accepted"
-        return token.literal
+        if token.token_type == TokenType.IDENTIFIER:
+            return self._env.get(token.lexeme)
+        else:
+            return token.literal
 
     def visit_unary_expr(self, expr: "UnaryExpr"):
         accepted_types = [TokenType.MINUS, TokenType.BANG]
@@ -60,9 +78,12 @@ class Interpreter(Visitor):
                 assert type(left_val) == type(
                     right_val
                 ), f"BinaryExpr: {left_val} and {right_val} are not the same type"
-                assert isinstance(
-                    left_val, float | str
-                ), f"BinaryExpr: {left_val} is not a number or string"
+                try:
+                    assert isinstance(
+                        left_val, float | str
+                    ), f"BinaryExpr: {left_val} is not a number or string"
+                except AssertionError as e:
+                    breakpoint()
                 return left_val + right_val
             case TokenType.MINUS:
                 assert isinstance(
@@ -93,21 +114,62 @@ class Interpreter(Visitor):
     def visit_grouping_expr(self, expr: "GroupingExpr"):
         return self.interpret(expr.expr)
 
+    def visit_print_stmt(self, stmt: "PrintStmt"):
+        val = self.interpret(stmt.expr)
+        str = f"[interpreter] {val}"
+        str = color_print(str, "yellow")
+        print(str)
+
+    def visit_decl_stmt(self, stmt: "DeclStmt"):
+        if stmt.expr is None:
+            val = None
+        else:
+            val = self.interpret(stmt.expr)
+        self._env.define(stmt.name.lexeme, val)
+
+    def visit_assign_stmt(self, stmt: "AssignStmt"):
+        val = self.interpret(stmt.expr)
+        self._env.assign(stmt.name.lexeme, val)
+
+    def visit_block(self, block: "Block"):
+        with self._env.scope():
+            for stmt in block.exprs:
+                self.interpret(stmt)
+
+    def visit_program(self, program: "Program"):
+        for stmt in program.exprs:
+            self.interpret(stmt)
+
 
 def test_interpreter():
     from scanner import Scanner
     from parser import Parser
 
-    sources = ["1 + 2 * 3", "(1+2)  * 3", "1---1"]
+    sources = [
+        """
+        var a = 1;
+        var b = 2;
+        print a + b;
+        {
+            var c = 8;
+            print c;
+        }
+        {
+            var a = 4;
+            print a + b;
+        }
+        print a + 2 * 3;
+        print (a + 2) * 3;
+    """,
+    ]
 
     for source in sources:
+        print("-" * 80)
+        print(f"Testing source: {source}")
         tokens = Scanner(source).scan()
         expr = Parser(tokens).parse()
         interpreter = Interpreter()
         result = interpreter.interpret(expr)
-        expected = eval(source)
-        assert result == expected, f"Interpreter: {source} = {result} != {expected}"
-        logger.info(f"Interpreter: {source} = {result}")
 
 
 if __name__ == "__main__":

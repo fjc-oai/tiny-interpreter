@@ -166,8 +166,11 @@ class Parser:
     def _decl_stmt(self) -> Expr:
         self._advance(TokenType.VAR)
         name = self._advance(TokenType.IDENTIFIER)
-        self._advance(TokenType.EQUAL)
-        expr = self._expression()
+        if not self._is_at_end() and self._peek().token_type == TokenType.EQUAL:
+            self._advance()
+            expr = self._expression()
+        else:
+            expr = None
         self._advance(TokenType.SEMICOLON)
         return DeclStmt(name=name, expr=expr)
 

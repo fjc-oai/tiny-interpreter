@@ -50,7 +50,7 @@ class PrintStmt(Expr):
 @dataclass
 class DeclStmt(Expr):
     name: Token
-    expr: Expr
+    expr: Expr | None
 
     def accept(self, visitor: Visitor):
         return visitor.visit_decl_stmt(self)
