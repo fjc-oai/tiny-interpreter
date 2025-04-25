@@ -33,7 +33,7 @@ class TokenType(Enum):
     CLASS = "class"
     ELSE = "else"
     FALSE = "false"
-    FUN = "fun"
+    FUNC = "def"
     FOR = "for"
     IF = "if"
     NIL = "nil"
@@ -56,7 +56,7 @@ KEYWORDS: dict[str, TokenType] = {
     "else": TokenType.ELSE,
     "false": TokenType.FALSE,
     "for": TokenType.FOR,
-    "fun": TokenType.FUN,
+    "def": TokenType.FUNC,
     "if": TokenType.IF,
     "nil": TokenType.NIL,
     "or": TokenType.OR,
@@ -78,4 +78,4 @@ class Token:
     lineno: int
 
     def __str__(self) -> str:
-        return f"[{self.token_type}] {self.lexeme=}, {self.literal=}"
+        return f"[{self.token_type}] {self.lexeme=}, {self.literal=} {self.lineno=}"

@@ -10,13 +10,16 @@ from expr import (
     Expr,
     BinaryExpr,
     ForStmt,
+    FuncCall,
     GroupingExpr,
     IfStmt,
     LiteralExpr,
     PrintStmt,
     Program,
+    ReturnStmt,
     UnaryExpr,
     WhileStmt,
+    FuncDecl,
 )
 
 
@@ -132,7 +135,7 @@ class Parser:
             right = self._unary()
             return UnaryExpr(right=right, op=op)
 
-        return self._primary()
+        return self._func_call()
 
     def _primary(self) -> Expr:
         primary_token_types = (
@@ -169,6 +172,8 @@ class Parser:
             return self._print_stmt()
         elif self._peek().token_type == TokenType.VAR:
             return self._decl_stmt()
+        elif self._peek().token_type == TokenType.FUNC:
+            return self._func_decl_stmt()
         elif self._peek().token_type == TokenType.LEFT_BRACE:
             return self._block_stmt()
         elif self._peek().token_type == TokenType.IF:
@@ -177,13 +182,18 @@ class Parser:
             return self._while_stmt()
         elif self._peek().token_type == TokenType.FOR:
             return self._for_stmt()
+        elif self._peek().token_type == TokenType.RETURN:
+            return self._return_stmt()
         else:
             if (
                 self._peek().token_type == TokenType.IDENTIFIER
                 and self._peek(1).token_type == TokenType.EQUAL
             ):
                 return self._assign_stmt()
-        assert False, f"Unexpected token: {self._peek()}"
+            else:
+                expr = self._expression()
+                self._advance(TokenType.SEMICOLON)
+                return expr
 
     def _print_stmt(self) -> Expr:
         self._advance(TokenType.PRINT)
@@ -255,6 +265,49 @@ class Parser:
         self._advance(TokenType.RIGHT_PAREN)
         body = self._statement()
         return ForStmt(init=init, condition=condition, update=update, body=body)
+
+    def _func_decl_stmt(self) -> Expr:
+        self._advance(TokenType.FUNC)
+        name = self._advance(TokenType.IDENTIFIER)
+        self._advance(TokenType.LEFT_PAREN)
+        params = []
+        while (
+            not self._is_at_end() and self._peek().token_type != TokenType.RIGHT_PAREN
+        ):
+            params.append(self._advance(TokenType.IDENTIFIER))
+            if self._peek().token_type == TokenType.COMMA:
+                self._advance(TokenType.COMMA)
+        self._advance(TokenType.RIGHT_PAREN)
+        body = self._block_stmt()
+        return FuncDecl(name=name, params=params, body=body)
+
+    def _func_call(self) -> Expr:
+        if (
+            self._peek().token_type == TokenType.IDENTIFIER
+            and self._peek(1).token_type == TokenType.LEFT_PAREN
+        ):  # TODO: support fn()()
+            name = self._advance(TokenType.IDENTIFIER)
+            self._advance(TokenType.LEFT_PAREN)
+            args = []
+            while (
+                not self._is_at_end()
+                and self._peek().token_type != TokenType.RIGHT_PAREN
+            ):
+                args.append(self._expression())
+                if self._peek().token_type == TokenType.COMMA:
+                    self._advance(TokenType.COMMA)
+            self._advance(TokenType.RIGHT_PAREN)
+            return FuncCall(name=name, args=args)
+        return self._primary()
+
+    def _return_stmt(self) -> Expr:
+        self._advance(TokenType.RETURN)
+        if not self._is_at_end() and self._peek().token_type != TokenType.SEMICOLON:
+            expr = self._expression()
+        else:
+            expr = None
+        self._advance(TokenType.SEMICOLON)
+        return ReturnStmt(expr=expr)
 
 
 def _test_expression(source: str) -> None:

@@ -1,14 +1,18 @@
 from typing import Any
-from env import Environment
+from env import State
+from func import Func
 from interface import Expr, Visitor
 from expr import (
     AssignStmt,
     BinaryExpr,
     Block,
     DeclStmt,
+    FuncCall,
+    FuncDecl,
     IfStmt,
     PrintStmt,
     Program,
+    ReturnStmt,
     UnaryExpr,
     LiteralExpr,
     GroupingExpr,
@@ -25,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 class Interpreter(Visitor):
     def __init__(self):
-        self._env = Environment()
+        self._state = State()
 
     def interpret(self, expr: Expr) -> Any:
         return expr.accept(self)
@@ -44,7 +48,7 @@ class Interpreter(Visitor):
             token.token_type in accepted_types
         ), f"LiteralExpr: {token.token_type} is not accepted"
         if token.token_type == TokenType.IDENTIFIER:
-            return self._env.get(token.lexeme)
+            return self._state.get(token.lexeme)
         else:
             return token.literal
 
@@ -72,12 +76,9 @@ class Interpreter(Visitor):
                 assert type(left_val) == type(
                     right_val
                 ), f"BinaryExpr: {left_val} and {right_val} are not the same type"
-                try:
-                    assert isinstance(
-                        left_val, float | str
-                    ), f"BinaryExpr: {left_val} is not a number or string"
-                except AssertionError as e:
-                    breakpoint()
+                assert isinstance(
+                    left_val, float | str
+                ), f"BinaryExpr: {left_val} is not a number or string"
                 return left_val + right_val
             case TokenType.MINUS:
                 assert isinstance(
@@ -182,14 +183,14 @@ class Interpreter(Visitor):
             val = None
         else:
             val = self.interpret(stmt.expr)
-        self._env.define(stmt.name.lexeme, val)
+        self._state.define(stmt.name.lexeme, val)
 
     def visit_assign_stmt(self, stmt: "AssignStmt"):
         val = self.interpret(stmt.expr)
-        self._env.assign(stmt.name.lexeme, val)
+        self._state.assign(stmt.name.lexeme, val)
 
     def visit_block(self, block: "Block"):
-        with self._env.scope():
+        with self._state.block_scope():
             for stmt in block.exprs:
                 self.interpret(stmt)
 
@@ -213,6 +214,38 @@ class Interpreter(Visitor):
         while self.interpret(stmt.condition):
             self.interpret(stmt.body)
             self.interpret(stmt.update)
+
+    def visit_func_decl(self, stmt: "FuncDecl"):
+        name = stmt.name.lexeme
+        params = [param for param in stmt.params]
+        body = stmt.body
+        func = Func(name=name, params=params, body=body)
+        self._state.define(name, func)
+
+    def visit_func_call(self, expr: "FuncCall"):
+        func_name = expr.name.lexeme
+        func = self._state.get(func_name)
+        assert isinstance(func, Func), f"FuncCall: {func_name} is not a function"
+        assert len(expr.args) == len(
+            func.params
+        ), f"FuncCall: {func_name} has {len(expr.args)} arguments, but {len(func.params)} parameters"
+        args = {
+            param.lexeme: self.interpret(arg) for param, arg in zip(func.params, expr.args)
+        }
+        with self._state.func_scope(args):
+            if isinstance(
+                func, Func
+            ):  # TODO: 1) maybe move this to Func class, 2) support native functions
+                try:
+                    self.interpret(func.body)
+                except ValueError as e:
+                    return e.args[0]
+
+    def visit_return_stmt(self, stmt: "ReturnStmt"):
+        res = None
+        if stmt.expr is not None:
+            res = self.interpret(stmt.expr)
+        raise ValueError(res)
 
 
 def test_interpreter():
@@ -250,7 +283,7 @@ def test_interpreter():
             print "a is greater than b and less than b";
         }
     """,
-    """
+        """
     print "=== while loop ===";
     var itr = 0;
     while (itr < 10) {
@@ -258,11 +291,40 @@ def test_interpreter():
         itr = itr + 1;
     }
     """,
-    """
+        """
     print "=== for loop ===";
     for (var itr = 0; itr < 10; itr = itr + 1;) {
         print itr;
     }
+    """,
+        """
+    var a = 2;
+    var b = 4;
+    def div(a, b) {
+        var c = a / b;
+        print c;
+    }
+    div(a, b);
+    div(b, a);
+    """,
+    """
+    def recurse(n) {
+        print n;
+        if (n <= 1) {
+            return n;
+        }
+        return recurse(n - 1);
+    }
+    print recurse(10);
+    """,
+    """
+    def fib(n) {
+        if (n <= 1) {
+            return n;
+        }
+        return fib(n - 1) + fib(n - 2);
+    }
+    print fib(10);
     """
     ]
 

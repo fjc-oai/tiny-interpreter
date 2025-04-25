@@ -118,3 +118,35 @@ class ForStmt(Expr):
 
     def accept(self, visitor: Visitor):
         return visitor.visit_for_stmt(self)
+
+########################################################
+# Function
+########################################################
+
+@dataclass
+class FuncDecl(Expr):
+    name: Token
+    params: list[Token]
+    body: Expr
+
+    def accept(self, visitor: Visitor):
+        return visitor.visit_func_decl(self)
+
+
+@dataclass
+class FuncCall(Expr):
+    name: Token # TODO: how to support fn()()
+    args: list[Expr] # TODO: how to support fn(1+2, a+b)
+
+    def accept(self, visitor: Visitor):
+        return visitor.visit_func_call(self)
+
+@dataclass
+class ReturnStmt(Expr):
+    expr: Expr | None
+
+    def accept(self, visitor: Visitor):
+        return visitor.visit_return_stmt(self)
+    
+    
+    

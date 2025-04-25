@@ -17,6 +17,9 @@ if TYPE_CHECKING:
         IfStmt,
         WhileStmt,
         ForStmt,
+        FuncDecl,
+        FuncCall,
+        ReturnStmt,
     )
 
 import logging
@@ -75,4 +78,13 @@ class Visitor:
         pass
 
     def visit_for_stmt(self, stmt: "ForStmt"):
+        pass
+
+    def visit_func_decl(self, stmt: "FuncDecl"):
+        pass
+
+    def visit_func_call(self, expr: "FuncCall"):
+        pass
+
+    def visit_return_stmt(self, stmt: "ReturnStmt"):
         pass

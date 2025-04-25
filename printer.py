@@ -12,6 +12,10 @@ from expr import (
     UnaryExpr,
     LiteralExpr,
     WhileStmt,
+    ForStmt,
+    FuncDecl,
+    FuncCall,
+    ReturnStmt,
 )
 
 
@@ -79,6 +83,20 @@ class ExprPrinter(Visitor):
         str += f"\t{self.print(stmt.body)}\n"
         return str
 
+    def visit_func_decl(self, stmt: "FuncDecl"):
+        str = f"def {stmt.name.lexeme}\n"
+        str += f"\t({self.print(stmt.params)})\n"
+        str += f"\t{self.print(stmt.body)}\n"
+        return str
+
+    def visit_func_call(self, expr: "FuncCall"):
+        str = f"{expr.name.lexeme}\n"
+        str += f"\t({self.print(expr.args)})\n"
+        return str
+
+    def visit_return_stmt(self, stmt: "ReturnStmt"):
+        str = f"return {self.print(stmt.expr)}"
+        return str
 
 def test_ast_printer():
     3 + (-5)
