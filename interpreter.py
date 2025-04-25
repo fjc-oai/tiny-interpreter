@@ -122,6 +122,22 @@ class Interpreter(Visitor):
             case _:
                 assert False, f"BinaryExpr: {expr.op.token_type} is not handled"
 
+    def _handle_and_or_op(self, expr: "BinaryExpr"):
+        op = expr.op
+        if op.token_type == TokenType.AND:
+            left_val = self.interpret(expr.left)
+            if left_val:
+                return self.interpret(expr.right)
+            else:
+                return False
+        elif op.token_type == TokenType.OR:
+            left_val = self.interpret(expr.left)
+            if left_val:
+                return left_val
+            else:
+                return self.interpret(expr.right)
+        assert False, f"BinaryExpr: {expr.op.token_type} is not handled"
+
     def visit_binary_expr(self, expr: "BinaryExpr"):
         math_ops = [
             TokenType.PLUS,
@@ -137,10 +153,17 @@ class Interpreter(Visitor):
             TokenType.LESS,
             TokenType.LESS_EQUAL,
         ]
+        and_or_ops = [
+            TokenType.AND,
+            TokenType.OR,
+        ]
+
         if expr.op.token_type in math_ops:
             return self._handle_math_op(expr)
         elif expr.op.token_type in logic_ops:
             return self._handle_logic_op(expr)
+        elif expr.op.token_type in and_or_ops:
+            return self._handle_and_or_op(expr)
         assert False, f"BinaryExpr: {expr.op.token_type} is not handled"
 
     def visit_grouping_expr(self, expr: "GroupingExpr"):
@@ -207,6 +230,12 @@ def test_interpreter():
             print "a is greater than b";
         } else {
             print "a is less than or equal to b";
+        }
+        if a > b or a < b {
+            print "a is greater than b or less than b";
+        }
+        if a > b and a < b {
+            print "a is greater than b and less than b";
         }
     """,
     ]

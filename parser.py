@@ -45,7 +45,27 @@ class Parser:
         return token
 
     def _expression(self) -> Expr:
-        return self._equality()
+        return self._or()
+
+    def _or(self) -> Expr:
+        expr = self._and()
+
+        while not self._is_at_end() and self._peek().token_type == TokenType.OR:
+            op = self._advance(TokenType.OR)
+            right = self._and()
+            expr = BinaryExpr(left=expr, right=right, op=op)
+
+        return expr
+
+    def _and(self) -> Expr:
+        expr = self._equality()
+
+        while not self._is_at_end() and self._peek().token_type == TokenType.AND:
+            op = self._advance(TokenType.AND)
+            right = self._equality()
+            expr = BinaryExpr(left=expr, right=right, op=op)
+
+        return expr
 
     def _equality(self) -> Expr:
         expr = self._comparison()
