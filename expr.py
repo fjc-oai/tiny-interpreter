@@ -108,3 +108,13 @@ class WhileStmt(Expr):
 
     def accept(self, visitor: Visitor):
         return visitor.visit_while_stmt(self)
+
+@dataclass
+class ForStmt(Expr):
+    init: Expr
+    condition: Expr
+    update: Expr
+    body: Expr
+
+    def accept(self, visitor: Visitor):
+        return visitor.visit_for_stmt(self)

@@ -15,6 +15,8 @@ if TYPE_CHECKING:
         Block,
         Program,
         IfStmt,
+        WhileStmt,
+        ForStmt,
     )
 
 import logging
@@ -67,4 +69,10 @@ class Visitor:
         pass
 
     def visit_if_stmt(self, stmt: "IfStmt"):
+        pass
+
+    def visit_while_stmt(self, stmt: "WhileStmt"):
+        pass
+
+    def visit_for_stmt(self, stmt: "ForStmt"):
         pass

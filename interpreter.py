@@ -12,6 +12,8 @@ from expr import (
     UnaryExpr,
     LiteralExpr,
     GroupingExpr,
+    WhileStmt,
+    ForStmt,
 )
 from tok import TokenType
 import logging
@@ -206,6 +208,12 @@ class Interpreter(Visitor):
         while self.interpret(stmt.condition):
             self.interpret(stmt.body)
 
+    def visit_for_stmt(self, stmt: "ForStmt"):
+        self.interpret(stmt.init)
+        while self.interpret(stmt.condition):
+            self.interpret(stmt.body)
+            self.interpret(stmt.update)
+
 
 def test_interpreter():
     from scanner import Scanner
@@ -243,10 +251,17 @@ def test_interpreter():
         }
     """,
     """
+    print "=== while loop ===";
     var itr = 0;
     while (itr < 10) {
         print itr;
         itr = itr + 1;
+    }
+    """,
+    """
+    print "=== for loop ===";
+    for (var itr = 0; itr < 10; itr = itr + 1;) {
+        print itr;
     }
     """
     ]

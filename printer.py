@@ -71,6 +71,14 @@ class ExprPrinter(Visitor):
         str += f"\t{self.print(stmt.body)}\n"
         return str
 
+    def visit_for_stmt(self, stmt: "ForStmt"):
+        str = "for\n"
+        str += f"\t({self.print(stmt.init)})\n"
+        str += f"\t({self.print(stmt.condition)})\n"
+        str += f"\t({self.print(stmt.update)})\n"
+        str += f"\t{self.print(stmt.body)}\n"
+        return str
+
 
 def test_ast_printer():
     3 + (-5)

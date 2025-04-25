@@ -57,7 +57,7 @@ class Scanner:
         if self._peek() != '"':
             raise ValueError(f"Unterminated string")
         self._advance()
-        value = self._source[self._start + 1 : self._cur]
+        value = self._source[self._start + 1 : self._cur - 1]
         return self._gen_token(TokenType.STRING, value)
 
     def _number(self) -> Token:

@@ -9,6 +9,7 @@ from expr import (
     DeclStmt,
     Expr,
     BinaryExpr,
+    ForStmt,
     GroupingExpr,
     IfStmt,
     LiteralExpr,
@@ -174,6 +175,8 @@ class Parser:
             return self._if_stmt()
         elif self._peek().token_type == TokenType.WHILE:
             return self._while_stmt()
+        elif self._peek().token_type == TokenType.FOR:
+            return self._for_stmt()
         else:
             if (
                 self._peek().token_type == TokenType.IDENTIFIER
@@ -237,6 +240,21 @@ class Parser:
         self._advance(TokenType.RIGHT_PAREN)
         body = self._statement()
         return WhileStmt(condition=condition, body=body)
+
+    def _for_stmt(self) -> Expr:
+        self._advance(TokenType.FOR)
+        self._advance(TokenType.LEFT_PAREN)
+        if self._peek().token_type == TokenType.VAR:
+            init = self._decl_stmt()
+        else:
+            init = self._expression()
+            self._advance(TokenType.SEMICOLON)
+        condition = self._expression()
+        self._advance(TokenType.SEMICOLON)
+        update = self._assign_stmt()
+        self._advance(TokenType.RIGHT_PAREN)
+        body = self._statement()
+        return ForStmt(init=init, condition=condition, update=update, body=body)
 
 
 def _test_expression(source: str) -> None:

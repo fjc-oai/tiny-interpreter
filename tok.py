@@ -78,4 +78,4 @@ class Token:
     lineno: int
 
     def __str__(self) -> str:
-        return f"[{self.token_type}] {self.lexeme}"
+        return f"[{self.token_type}] {self.lexeme=}, {self.literal=}"
