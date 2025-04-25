@@ -10,6 +10,7 @@ from expr import (
     Expr,
     BinaryExpr,
     GroupingExpr,
+    IfStmt,
     LiteralExpr,
     PrintStmt,
     Program,
@@ -148,6 +149,8 @@ class Parser:
             return self._decl_stmt()
         elif self._peek().token_type == TokenType.LEFT_BRACE:
             return self._block_stmt()
+        elif self._peek().token_type == TokenType.IF:
+            return self._if_stmt()
         else:
             if (
                 self._peek().token_type == TokenType.IDENTIFIER
@@ -191,6 +194,18 @@ class Parser:
             exprs.append(self._statement())
         self._advance(TokenType.RIGHT_BRACE)
         return Block(exprs)
+
+    def _if_stmt(self) -> Expr:
+        self._advance(TokenType.IF)
+        condition = self._expression()
+        then_branch = self._statement()
+        else_branch = None
+        if not self._is_at_end() and self._peek().token_type == TokenType.ELSE:
+            self._advance(TokenType.ELSE)
+            else_branch = self._statement()
+        return IfStmt(
+            condition=condition, then_branch=then_branch, else_branch=else_branch
+        )
 
 
 def _test_expression(source: str) -> None:

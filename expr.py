@@ -4,6 +4,9 @@ from scanner import Token
 from interface import Expr, Visitor
 
 
+########################################################
+# Basic expressions
+########################################################
 @dataclass
 class LiteralExpr(Expr):
     value: Token
@@ -39,6 +42,9 @@ class GroupingExpr(Expr):
         return visitor.visit_grouping_expr(self)
 
 
+########################################################
+# Statements
+########################################################
 @dataclass
 class PrintStmt(Expr):
     expr: Expr
@@ -79,3 +85,17 @@ class Program(Expr):
 
     def accept(self, visitor: Visitor):
         return visitor.visit_program(self)
+
+
+########################################################
+# Control flow
+########################################################
+
+@dataclass
+class IfStmt(Expr):
+    condition: Expr
+    then_branch: Expr
+    else_branch: Expr | None
+
+    def accept(self, visitor: Visitor):
+        return visitor.visit_if_stmt(self)

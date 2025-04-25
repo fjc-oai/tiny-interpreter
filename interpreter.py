@@ -6,6 +6,7 @@ from expr import (
     BinaryExpr,
     Block,
     DeclStmt,
+    IfStmt,
     PrintStmt,
     Program,
     UnaryExpr,
@@ -60,17 +61,8 @@ class Interpreter(Visitor):
                 assert isinstance(val, bool), f"UnaryExpr: {val} is not a boolean"
                 return not val
 
-    def visit_binary_expr(self, expr: "BinaryExpr"):
-        accepted_types = [
-            TokenType.PLUS,
-            TokenType.MINUS,
-            TokenType.SLASH,
-            TokenType.STAR,
-        ]
+    def _handle_math_op(self, expr: "BinaryExpr"):
         token = expr.op
-        assert (
-            token.token_type in accepted_types
-        ), f"BinaryExpr: {token.token_type} is not accepted"
         left_val = self.interpret(expr.left)
         right_val = self.interpret(expr.right)
         match token.token_type:
@@ -111,6 +103,46 @@ class Interpreter(Visitor):
                 return left_val * right_val
         assert False, f"BinaryExpr: {token.token_type} is not handled"
 
+    def _handle_logic_op(self, expr: "BinaryExpr"):
+        left_val = self.interpret(expr.left)
+        right_val = self.interpret(expr.right)
+        match expr.op.token_type:
+            case TokenType.EQUAL_EQUAL:
+                return left_val == right_val
+            case TokenType.BANG_EQUAL:
+                return left_val != right_val
+            case TokenType.GREATER:
+                return left_val > right_val
+            case TokenType.GREATER_EQUAL:
+                return left_val >= right_val
+            case TokenType.LESS:
+                return left_val < right_val
+            case TokenType.LESS_EQUAL:
+                return left_val <= right_val
+            case _:
+                assert False, f"BinaryExpr: {expr.op.token_type} is not handled"
+
+    def visit_binary_expr(self, expr: "BinaryExpr"):
+        math_ops = [
+            TokenType.PLUS,
+            TokenType.MINUS,
+            TokenType.SLASH,
+            TokenType.STAR,
+        ]
+        logic_ops = [
+            TokenType.EQUAL_EQUAL,
+            TokenType.BANG_EQUAL,
+            TokenType.GREATER,
+            TokenType.GREATER_EQUAL,
+            TokenType.LESS,
+            TokenType.LESS_EQUAL,
+        ]
+        if expr.op.token_type in math_ops:
+            return self._handle_math_op(expr)
+        elif expr.op.token_type in logic_ops:
+            return self._handle_logic_op(expr)
+        assert False, f"BinaryExpr: {expr.op.token_type} is not handled"
+
     def visit_grouping_expr(self, expr: "GroupingExpr"):
         return self.interpret(expr.expr)
 
@@ -140,6 +172,13 @@ class Interpreter(Visitor):
         for stmt in program.exprs:
             self.interpret(stmt)
 
+    def visit_if_stmt(self, stmt: "IfStmt"):
+        condition = self.interpret(stmt.condition)
+        if condition:
+            self.interpret(stmt.then_branch)
+        elif stmt.else_branch is not None:
+            self.interpret(stmt.else_branch)
+
 
 def test_interpreter():
     from scanner import Scanner
@@ -160,6 +199,15 @@ def test_interpreter():
         }
         print a + 2 * 3;
         print (a + 2) * 3;
+    """,
+        """
+        var a = 1;
+        var b = 2;
+        if a > b {
+            print "a is greater than b";
+        } else {
+            print "a is less than or equal to b";
+        }
     """,
     ]
 

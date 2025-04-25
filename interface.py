@@ -14,6 +14,7 @@ if TYPE_CHECKING:
         AssignStmt,
         Block,
         Program,
+        IfStmt,
     )
 
 import logging
@@ -63,4 +64,7 @@ class Visitor:
         pass
 
     def visit_program(self, program: "Program"):
+        pass
+
+    def visit_if_stmt(self, stmt: "IfStmt"):
         pass

@@ -6,6 +6,7 @@ from expr import (
     Block,
     DeclStmt,
     GroupingExpr,
+    IfStmt,
     PrintStmt,
     Program,
     UnaryExpr,
@@ -50,6 +51,16 @@ class ExprPrinter(Visitor):
 
     def visit_program(self, program: "Program"):
         str = "\n".join([self.print(stmt) for stmt in program.exprs])
+        return str
+
+    def visit_if_stmt(self, stmt: "IfStmt"):
+        str = "if\n"
+        str += f"\t({self.print(stmt.condition)})\n"
+        str += "then\n"
+        str += f"\t{self.print(stmt.then_branch)}\n"
+        if stmt.else_branch is not None:
+            str += "else\n"
+            str += f"\t{self.print(stmt.else_branch)}\n"
         return str
 
 
