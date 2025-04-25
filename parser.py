@@ -154,8 +154,7 @@ def test_precedence():
     print(f"Testing precedence: {source}")
     _test_parser(source)
 
-
-def main():
+def test_parser():
     test_multiple_expressions()
     test_unary_operator()
     test_grouping()
@@ -163,4 +162,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    test_parser()

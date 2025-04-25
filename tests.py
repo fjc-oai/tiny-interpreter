@@ -1,7 +1,7 @@
 from printer import test_ast_printer
 from parser import test_parser
 from scanner import test_scan
-
+from interpreter import test_interpreter
 
 def test_all_runnable():
     print("Running tests...")
@@ -17,6 +17,10 @@ def test_all_runnable():
     print("-" * 80)
     print("Test parser...")
     test_parser()
+
+    print("-" * 80)
+    print("Test interpreter...")
+    test_interpreter()
 
 
 def main():
