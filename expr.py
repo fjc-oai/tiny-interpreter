@@ -136,7 +136,7 @@ class FuncDecl(Expr):
 @dataclass
 class FuncCall(Expr):
     name: Token # TODO: how to support fn()()
-    args: list[Expr] # TODO: how to support fn(1+2, a+b)
+    args: list[Expr] 
 
     def accept(self, visitor: Visitor):
         return visitor.visit_func_call(self)

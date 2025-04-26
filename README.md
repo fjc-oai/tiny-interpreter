@@ -3,7 +3,7 @@
 - parser: recursive descent parsing!
   - solve precendence and ordering
 - function 
-  TODO: 
+  DONE
     1. function declaration 
        1. parser: ast node: id, args, body
        2. interpreter: register a new entry to env lookup table, while the value is a new class 
@@ -18,3 +18,7 @@
        1. basic function call
        2. func call with return
        3. recursive function 
+
+  TODO:
+    1. support a.b.c=2
+    2. support fn()()

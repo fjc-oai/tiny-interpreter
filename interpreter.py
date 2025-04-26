@@ -262,6 +262,7 @@ def test_interpreter():
     from parser import Parser
 
     sources = [
+        # Basic arithmetic and block scope
         """
         var a = 1;
         var b = 2;
@@ -277,6 +278,7 @@ def test_interpreter():
         print a + 2 * 3;
         print (a + 2) * 3;
     """,
+        # If statement
         """
         var a = 1;
         var b = 2;
@@ -292,6 +294,7 @@ def test_interpreter():
             print "a is greater than b and less than b";
         }
     """,
+        # While loop
         """
     print "=== while loop ===";
     var itr = 0;
@@ -300,12 +303,14 @@ def test_interpreter():
         itr = itr + 1;
     }
     """,
+        # For loop
         """
     print "=== for loop ===";
     for (var itr = 0; itr < 10; itr = itr + 1;) {
         print itr;
     }
     """,
+        # Basic functions
         """
     var a = 2;
     var b = 4;
@@ -316,16 +321,7 @@ def test_interpreter():
     div(a, b);
     div(b, a);
     """,
-        """
-    def recurse(n) {
-        print n;
-        if (n <= 1) {
-            return n;
-        }
-        return recurse(n - 1);
-    }
-    print recurse(10);
-    """,
+        # Recursive functions
         """
     def fib(n) {
         if (n <= 1) {
@@ -335,6 +331,7 @@ def test_interpreter():
     }
     print fib(10);
     """,
+        # Passing functions as arguments
         """
     def add(a, b) {
         return a + b;
@@ -348,11 +345,34 @@ def test_interpreter():
     }
     mix(add, minus, 1, 2);
     """,
-    """
+        # Native functions
+        """
     var start_time = time();
-    sleep(3);
+    sleep(0.2);
     var end_time = time();
     print end_time - start_time;
+    """,
+        # Nested function calls
+        """
+    def fn() {
+        print "running fn";
+        def inner_fn() {
+            print "running inner_fn";
+        }
+        inner_fn();
+    }
+    fn();
+        """,
+        # Enclosure
+    """
+    def fn() {
+        var a = 1;
+        def inner_fn() {
+            print a;
+        }
+        inner_fn();
+    }
+    fn();
     """
     ]
 
