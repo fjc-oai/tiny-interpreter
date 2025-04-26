@@ -1,6 +1,6 @@
 from typing import Any
 from env import State
-from func import Func
+from func import Func, FuncBase, build_native_func_sleep, build_native_func_time
 from interface import Expr, Visitor
 from expr import (
     AssignStmt,
@@ -30,6 +30,11 @@ logger = logging.getLogger(__name__)
 class Interpreter(Visitor):
     def __init__(self):
         self._state = State()
+        self._load_native_funcs()
+
+    def _load_native_funcs(self):
+        self._state.define("time", build_native_func_time())
+        self._state.define("sleep", build_native_func_sleep())
 
     def interpret(self, expr: Expr) -> Any:
         return expr.accept(self)
@@ -217,7 +222,7 @@ class Interpreter(Visitor):
 
     def visit_func_decl(self, stmt: "FuncDecl"):
         name = stmt.name.lexeme
-        params = [param for param in stmt.params]
+        params = [param.lexeme for param in stmt.params]
         body = stmt.body
         func = Func(name=name, params=params, body=body)
         self._state.define(name, func)
@@ -225,25 +230,25 @@ class Interpreter(Visitor):
     def visit_func_call(self, expr: "FuncCall"):
         func_name = expr.name.lexeme
         func = self._state.get(func_name)
-        assert isinstance(func, Func), f"FuncCall: {func_name} is not a function"
+        assert isinstance(func, FuncBase), f"FuncCall: {func_name} is not a function"
         assert len(expr.args) == len(
             func.params
         ), f"FuncCall: {func_name} has {len(expr.args)} arguments, but {len(func.params)} parameters"
         id_args = {}
         val_args = {}
         for param, arg in zip(func.params, expr.args):
-            if isinstance(arg, LiteralExpr) and arg.value.token_type == TokenType.IDENTIFIER:
-                id_args[param.lexeme] = arg.value.lexeme
+            if (
+                isinstance(arg, LiteralExpr)
+                and arg.value.token_type == TokenType.IDENTIFIER
+            ):
+                id_args[param] = arg.value.lexeme
             else:
-                val_args[param.lexeme] = self.interpret(arg)
+                val_args[param] = self.interpret(arg)
         with self._state.func_scope(id_args, val_args):
-            if isinstance(
-                func, Func
-            ):  # TODO: 1) maybe move this to Func class, 2) support native functions
-                try:
-                    self.interpret(func.body)
-                except ValueError as e:
-                    return e.args[0]
+            try:
+                return func(self)
+            except ValueError as e:
+                return e.args[0]
 
     def visit_return_stmt(self, stmt: "ReturnStmt"):
         res = None
@@ -311,7 +316,7 @@ def test_interpreter():
     div(a, b);
     div(b, a);
     """,
-    """
+        """
     def recurse(n) {
         print n;
         if (n <= 1) {
@@ -321,7 +326,7 @@ def test_interpreter():
     }
     print recurse(10);
     """,
-    """
+        """
     def fib(n) {
         if (n <= 1) {
             return n;
@@ -330,7 +335,7 @@ def test_interpreter():
     }
     print fib(10);
     """,
-    """
+        """
     def add(a, b) {
         return a + b;
     }
@@ -342,8 +347,13 @@ def test_interpreter():
         print fn2(a, b);
     }
     mix(add, minus, 1, 2);
+    """,
     """
-
+    var start_time = time();
+    sleep(3);
+    var end_time = time();
+    print end_time - start_time;
+    """
     ]
 
     for source in sources:
@@ -352,7 +362,7 @@ def test_interpreter():
         tokens = Scanner(source).scan()
         expr = Parser(tokens).parse()
         interpreter = Interpreter()
-        result = interpreter.interpret(expr)
+        interpreter.interpret(expr)
 
 
 if __name__ == "__main__":

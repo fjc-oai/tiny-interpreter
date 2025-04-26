@@ -12,6 +12,7 @@
        1. parser: ast node: id, params
        2. interpreter: new lookup table, with arg-param binding
     3. return statement
+    4. pass function as argument
     4. native function
     5. test
        1. basic function call

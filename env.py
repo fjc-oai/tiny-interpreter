@@ -58,7 +58,10 @@ class State:
 
     def get(self, name: str) -> Any:
         env = self.env_list[-1]
-        return env.get(name)
+        try:
+            return env.get(name)
+        except:
+            breakpoint()
 
     @contextmanager
     def func_scope(self, id_args: dict[str, str], val_args: dict[str, Any]):
