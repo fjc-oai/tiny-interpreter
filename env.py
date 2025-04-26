@@ -61,12 +61,14 @@ class State:
         return env.get(name)
 
     @contextmanager
-    def func_scope(self, args: dict[str, Any]):
+    def func_scope(self, id_args: dict[str, str], val_args: dict[str, Any]):
         cur_env = self.env_list[-1]
         cur_global_vars = cur_env.lookup_tables[0]
         new_env = Env(lookup_tables=[cur_global_vars.copy()])
         new_env.lookup_tables.append(LookupTable())
-        for k, v in args.items():
+        for new_id, old_id in id_args.items():
+            new_env.define(new_id, cur_env.get(old_id))
+        for k, v in val_args.items():
             new_env.define(k, v)
         self.env_list.append(new_env)
         yield

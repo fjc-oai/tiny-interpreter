@@ -229,10 +229,14 @@ class Interpreter(Visitor):
         assert len(expr.args) == len(
             func.params
         ), f"FuncCall: {func_name} has {len(expr.args)} arguments, but {len(func.params)} parameters"
-        args = {
-            param.lexeme: self.interpret(arg) for param, arg in zip(func.params, expr.args)
-        }
-        with self._state.func_scope(args):
+        id_args = {}
+        val_args = {}
+        for param, arg in zip(func.params, expr.args):
+            if isinstance(arg, LiteralExpr) and arg.value.token_type == TokenType.IDENTIFIER:
+                id_args[param.lexeme] = arg.value.lexeme
+            else:
+                val_args[param.lexeme] = self.interpret(arg)
+        with self._state.func_scope(id_args, val_args):
             if isinstance(
                 func, Func
             ):  # TODO: 1) maybe move this to Func class, 2) support native functions
@@ -325,7 +329,21 @@ def test_interpreter():
         return fib(n - 1) + fib(n - 2);
     }
     print fib(10);
+    """,
     """
+    def add(a, b) {
+        return a + b;
+    }
+    def minus(a, b) {
+        return a - b;
+    }
+    def mix(fn1, fn2, a, b) {
+        print fn1(a, b);
+        print fn2(a, b);
+    }
+    mix(add, minus, 1, 2);
+    """
+
     ]
 
     for source in sources:
