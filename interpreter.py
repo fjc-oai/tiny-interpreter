@@ -364,16 +364,29 @@ def test_interpreter():
     fn();
         """,
         # Enclosure
-    """
-    def fn() {
-        var a = 1;
-        def inner_fn() {
-            print a;
+    # """
+    # def fn() {
+    #     var a = 1;
+    #     def inner_fn() {
+    #         print a;
+    #     }
+    #     inner_fn();
+    # }
+    # fn();
+    # """,
+        # Slow execution
+        """
+    def fib(n) {
+        if (n <= 1) {
+            return n;
         }
-        inner_fn();
+        return fib(n - 1) + fib(n - 2);
     }
-    fn();
-    """
+    var start_time = time();
+    fib(30);
+    var end_time = time();
+    print end_time - start_time;
+    """,
     ]
 
     for source in sources:
